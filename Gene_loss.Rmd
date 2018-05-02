@@ -1,0 +1,236 @@
+---
+title: "Result1"
+author: "Shankar K Shakya"
+date: "April 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Reading CAZy BOC data
+
+```{r, fig.align="center", fig.height=12, fig.width=12}
+
+rm(list =ls())
+
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+CAZy_boc <- PITG_foundin_all_samples$CAZy
+
+#number of samples
+ncol(CAZy_boc)
+
+#sample names
+colnames(CAZy_boc)
+
+#number of genes
+nrow(CAZy_boc)
+
+```
+
+
+## Filter PITG based on BOC and plot a heatmap
+
+
+
+```{r,fig.align="center", fig.height=12, fig.width=12}
+#CAZy_boc[CAZy_boc == 0] <-  NA
+
+library(vcfR)
+CAZy_boc[CAZy_boc < 0.9] <-  NA
+
+list <- c("1306_2", "NL07434", "blue13", 
+              "P13527", "P13626", "LBUS5", "DDR7602", "RS2009P1"
+              ,"us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
+              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
+              "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
+    
+CAZy_boc <- CAZy_boc[, list]
+
+CAZy_boc <- CAZy_boc[apply(CAZy_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+morder <- sort.int(apply(CAZy_boc[,grep("mir|ipo|P7722", colnames(CAZy_boc), invert = FALSE)], MARGIN=1, function(x){sum(is.na(x))}), index.return = TRUE)$ix
+
+
+#tiff("./FIGS/supplemental_PA_BOC0.9.tiff", width = 7, height = 7, units = "in", res = 600)
+heatmap.bp(CAZy_boc[morder,], rlabels = FALSE)
+dev.off()
+
+
+#number of samples
+ncol(CAZy_boc)
+
+#sample names
+colnames(CAZy_boc)
+
+#number of CAZy presence absence polymorphism genes
+nrow(CAZy_boc)
+
+
+#max loss
+max(colSums(is.na(CAZy_boc)))
+
+#min loss
+min(colSums(is.na(CAZy_boc)))
+
+```
+
+
+## How many CAZy genes are lost at species level on average?
+
+
+```{r, fig.align="center", fig.height=12, fig.width=12}
+
+lost_CAZy <- as.data.frame(colSums(is.na(CAZy_boc)))
+lost_CAZy <- cbind(rownames(lost_CAZy), lost_CAZy)
+rownames(lost_CAZy) <- NULL
+species <- c(rep("P. infestans", 22), rep("P. ipomoeae", 4), rep("P. mirabilis", 4))
+lost_CAZy <- cbind(lost_CAZy, species)
+colnames(lost_CAZy) <- c("Samples", "Loss_numbers", "Species")
+
+lost_CAZy <- lost_CAZy[c(1:22,27:30,23:26), ]
+
+library(reshape2)
+library(ggplot2)
+lost_CAZy <- melt(lost_CAZy)
+
+
+#tiff("./FIGS/Geneloss_byspecies_BOC0.8.tiff", width = 7, height = 7, units = "in", res = 600)
+# ggplot(data = lost_CAZy, aes(x = Species, y = value, fill = Species)) + geom_boxplot() +
+#   labs(x = "Species", y = "Number of lost CAZy") +
+#   theme(axis.text.x = element_text(size =12, face = "italic")) +
+#   theme(axis.text.y = element_text(size =12)) + theme(legend.position = "none") +
+#   theme(axis.title = element_text(size = 15)) +
+#   theme(
+#   panel.background = element_rect(fill = "white",
+#                                 colour = "black",
+#                                 size = 0.5, linetype = "solid"),
+#   panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+#                                 colour = "black"), 
+#   panel.grid.minor = element_blank())
+#   
+
+library(forcats)
+#tiff("./FIGS/CAZYloss_byspecies_BOC0.9.tiff", width = 7, height = 7, units = "in", res = 600)
+
+ggplot(data = lost_CAZy, aes(x = fct_inorder(Species), y = value, fill = Species)) + geom_boxplot() +
+    labs(x = "Species", y = "Number of missing CAZy") +
+    theme(axis.text.x = element_text(size =12, face = "bold.italic")) +
+    theme(axis.text.y = element_text(size =12, face = "bold")) + theme(legend.position = "none") +
+    theme(axis.title = element_text(size = 20, face = "bold")) + 
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        panel.border = element_rect(color = "black", fill = NA)) +
+  theme(axis.title.x = element_blank())
+
+dev.off()
+
+
+
+```
+
+
+
+## Presence absence polymorphism only in P.infestans
+
+```{r, , fig.align="center", fig.height=12, fig.width=12}
+
+CAZy_boc_pinf <- CAZy_boc[ , 1:22]
+CAZy_boc_pinf <- CAZy_boc_pinf[apply(CAZy_boc_pinf, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+morder <- sort.int(apply(CAZy_boc_pinf[,grep("P10650|inf6|inf5|inf2", colnames(CAZy_boc_pinf), invert = FALSE)], MARGIN=1, function(x){sum(is.na(x))}), index.return = TRUE)$ix
+  
+
+#number of lost CAZy within Pinfestans
+nrow(CAZy_boc_pinf)
+
+heatmap.bp(CAZy_boc_pinf[morder, ], rlabels = F)
+
+
+#max loss
+max(colSums(is.na(CAZy_boc_pinf)))
+
+#min loss
+min(colSums(is.na(CAZy_boc_pinf)))
+
+
+pinf_loss <- as.data.frame(colSums(is.na(CAZy_boc_pinf)))
+pop <- c("1306", "Netherland", "blue13", rep("EC", 2), rep("US1", 2),  rep("US-8", 2), "US-11", "US-18", rep("US-22", 3), rep("US-23", 2), "US-24", rep("Mexico", 5))
+
+lineage <- c("1306", "Netherland", "blue13", rep("EC", 2), rep("US-lineages", 12), rep("Mexico", 5))
+
+pinf_loss <- cbind(pinf_loss, pop, lineage)
+colnames(pinf_loss) <- c("loss", "pop", "lineage")
+
+pinf_loss <- melt(pinf_loss)
+
+
+#tiff("./FIGS/Geneloss_withinPinfestans_detail_BOC0..tiff", width = 7, height = 7, units = "in", res = 600)
+
+ggplot(data = pinf_loss, aes(x = pop, y = value, fill = pop)) + geom_boxplot() +
+  labs(x = "Population", y = "Number of lost CAZy by lineages") +
+  theme(axis.text.x = element_text(size =12, angle = 60, hjust = 1)) +
+  theme(axis.text.y = element_text(size =12)) + theme(legend.position = "none") +
+  theme(axis.title = element_text(size = 15))
+
+dev.off()
+
+
+
+
+#tiff("./FIGS/Geneloss_withinPinfestans_merged_BOC0.9.tiff", width = 7, height = 7, units = "in", res = 600)
+
+ggplot(data = pinf_loss, aes(x = lineage, y = value, fill = lineage)) + geom_boxplot() +
+  labs(x = "Population", y = "Number of missing CAZy by lineages") +
+  theme(axis.text.x = element_text(size =12, angle = 60, hjust = 1)) +
+  theme(axis.text.y = element_text(size =12)) + theme(legend.position = "none") +
+  theme(axis.title = element_text(size = 15))
+
+dev.off()
+
+```
+
+
+
+## Lets look into Avirulence genes
+
+```{r, fig.align="center", fig.height=12, fig.width=12}
+
+Avr_boc <- PITG_foundin_all_samples$CAZy[c("PITG_16663", "PITG_06432", "PITG_22870", "PITG_14371", "PITG_18215", "PITG_07387", "PITG_21388", "PITG_20300", "PITG_16294", "PITG_07550", "PITG_07558"), , drop = F]
+
+Avr_boc[Avr_boc < 0.90] <-  NA
+
+list <- c("1306_2", "NL07434", "blue13", 
+               "P13527", "P13626",   "LBUS5",  "DDR7602", "RS2009P1"
+          , "us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
+              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
+              "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
+    
+Avr_boc <- Avr_boc[, list]
+
+
+avr_genes <- read.table("AVR_list.txt", header = TRUE, sep = "\t")
+avr_boc <- Avr_boc[rownames(Avr_boc) %in% avr_genes$PITGs, ]
+
+
+for (k in 1:nrow(avr_boc)){
+
+      temp <- subset(avr_genes, rownames(avr_boc)[k] == avr_genes$PITGs)
+      rownames(avr_boc)[k] <- as.character(temp$AVR)
+      
+      #rownames(avr_boc)[k] <- paste(temp[1,1], rownames(avr_boc)[k], sep = "_")
+      
+}
+
+avr_boc <- avr_boc[order(rownames(avr_boc)), ]
+#saveRDS(avr_boc, "avr_boc0.90_PITG.RData")
+
+#tiff("./FIGS/Avrheatmap_BOC0.9.tiff", width = 7, height = 7, units = "in", res = 600)
+heatmap.bp(avr_boc)
+dev.off()
+
+```
+
+
+
+
+
