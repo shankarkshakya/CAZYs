@@ -25,8 +25,10 @@ list <- c("1306_2", "NL07434", "blue13",
               ,"us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
               "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
               "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
+
 CAZY_boc <- CAZY_boc[,list]
-CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+CAZY_boc <- CAZY_boc[which(rowSums(is.na(CAZY_boc))> 0),]
 
 
 conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
@@ -43,14 +45,14 @@ length(mybin)
 conserved_CAZY_mybin <- mybin[names(mybin) %in% conserved_CAZY]
 length(conserved_CAZY_mybin)
 
-for (i in 1:length(conserved_CAZY_mybin)){
-    x <- conserved_CAZY_mybin[[i]]
-    rownames(x)[1] <- "Ref.seq"
-    conserved_CAZY_mybin[[i]] <- x
+# for (i in 1:length(conserved_CAZY_mybin)){
+#     x <- conserved_CAZY_mybin[[i]]
+#     rownames(x)[1] <- "Ref.seq"
+#     conserved_CAZY_mybin[[i]] <- x
+# 
+# }
 
-}
 
-conserved_CAZY_mybin <- lapply(conserved_CAZY_mybin, function(x) x[-c(2:3, 6:9, 24:27, 30,31, 36:37, 44,45,50, 51,60, 61, 68:71, 76:79), ])
 
 
 ```
