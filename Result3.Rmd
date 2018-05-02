@@ -1,0 +1,262 @@
+---
+title: "Diversity"
+author: "Shankar K Shakya"
+date: "April 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+rm(list =ls())
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+
+CAZY_loci <- rownames(PITG_foundin_all_samples$CAZy)
+
+CAZY_boc <- PITG_foundin_all_samples$CAZy
+CAZY_boc[CAZY_boc < 0.90] <- NA
+
+list <- c("1306_2", "NL07434", "blue13", 
+              "P13527", "P13626", "LBUS5", "DDR7602", "RS2009P1"
+              ,"us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
+              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
+              "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
+CAZY_boc <- CAZY_boc[,list]
+CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+
+conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
+
+length(conserved_CAZY) 
+
+library(ape)
+mybin <- readRDS("all_CAZYgenes.RData")
+length(mybin)
+
+mybin <- mybin[lapply(mybin, length) > 0]
+length(mybin)
+
+conserved_CAZY_mybin <- mybin[names(mybin) %in% conserved_CAZY]
+length(conserved_CAZY_mybin)
+
+for (i in 1:length(conserved_CAZY_mybin)){
+    x <- conserved_CAZY_mybin[[i]]
+    rownames(x)[1] <- "Ref.seq"
+    conserved_CAZY_mybin[[i]] <- x
+
+}
+
+conserved_CAZY_mybin <- lapply(conserved_CAZY_mybin, function(x) x[-c(2:3, 6:9, 24:27, 30,31, 36:37, 44,45,50, 51,60, 61, 68:71, 76:79), ])
+
+
+```
+
+## Nucleotide diversity of conserved CAZY and Housekeeping genes between three species
+
+```{r}
+
+library(reshape2)
+library(ggplot2)
+library(forcats)
+library(dplyr)
+library(pegas)
+
+conserved_CAZY_pinf <- lapply(conserved_CAZY_mybin, function (x)  x[ -c(grep("Ref", rownames(x))) , ])
+
+#corebin <- readRDS("conserved_Core_APS.RData")
+corebin <- readRDS("all_pinf7112Core.RData")
+
+
+corebin <- corebin[lapply(corebin, length) > 0]
+core_175 <- corebin[sample(1:length(corebin), size = 218, replace = F)]
+conserved_core_pinf <- lapply(core_175, function (x) x[which(rownames(core_175[[1]]) %in% rownames(conserved_CAZY_pinf$PITG_00366)), ])
+
+bin_list <- list(conserved_core_pinf, conserved_CAZY_pinf)
+names(bin_list) <- c("Core", "CAZY")
+
+nt_div_list <- vector("list", length(bin_list))
+names(nt_div_list) <- names(bin_list)
+
+for (i in 1:length(bin_list)){
+  
+    mybin <- bin_list[[i]]
+    mybin <- mybin[lapply(mybin, length) > 0 ]
+    
+    species <- c("P. infestans", "P. mirabillis", "P. ipomoeae")
+    nt_div_mat_species <- matrix(NA, length(mybin), length(species))
+    rownames(nt_div_mat_species) <- names(mybin)
+    colnames(nt_div_mat_species) <- species
+    
+    for (k in 1:length(mybin)){
+      seq <- mybin[[k]]
+    
+      pinf <- nuc.div(seq[grep("mir|P7722|ipo", rownames(seq), invert = TRUE), ])
+      pmir <- nuc.div(seq[grep("mir|P7722", rownames(seq)), ])
+      pipo <- nuc.div(seq[grep("ipo", rownames(seq)), ])
+      
+      nt_div_mat_species[k,1] <- pinf
+      nt_div_mat_species[k,2] <- pmir
+      nt_div_mat_species[k,3] <- pipo
+      
+     nt_div_list[[i]] <- nt_div_mat_species 
+    
+    }
+
+}
+
+for (i in 1:length(nt_div_list)){
+    nt_div_mat_species <- nt_div_list[[i]]
+    melt_nt_div_mat_species <- melt(nt_div_mat_species)
+    assign(paste(names(bin_list[i]), "melt_nt_div_mat_species" , sep = "_"), as.data.frame(melt_nt_div_mat_species)) 
+    
+}    
+
+observe1 <- rbind(
+    mutate(Core_melt_nt_div_mat_species, category = "Housekeeping genes"),
+    mutate(CAZY_melt_nt_div_mat_species, category = "CAZY genes")
+    
+)
+
+KW_test <- vector("list", 3)
+names(KW_test) <- c("Pinf", "Pmir", "Pipo")
+
+for (i in 1:3) {
+
+    Core <- nt_div_list$Core
+    Pinf_Core_ntdiv <- Core[, i]
+    Pinf_Core_ntdiv.df <- data.frame(Pinf_Core_ntdiv, rep("Housekeeping genes", length(Pinf_Core_ntdiv)))
+    colnames(Pinf_Core_ntdiv.df) <- c("Nuc_div","Family")
+    
+    CAZY <- nt_div_list$CAZY
+    Pinf_CAZY_ntdiv <- CAZY[, i]
+    Pinf_CAZY_ntdiv.df <- data.frame(Pinf_CAZY_ntdiv, rep("CAZY", length(Pinf_CAZY_ntdiv)))
+    colnames(Pinf_CAZY_ntdiv.df) <- c("Nuc_div","Family")
+    
+    all.df <- rbind(Pinf_Core_ntdiv.df, Pinf_CAZY_ntdiv.df)
+    
+    library(DescTools)
+    KW_test[[i]] <- kruskal.test(Nuc_div~Family, data = all.df)
+    DunnTest(Nuc_div~Family, data = all.df)
+
+}
+
+
+p <- ggplot(observe1, aes(x=fct_inorder(Var2), y = value)) + 
+  geom_boxplot(aes(fill = category)) + 
+  labs(x = NULL, y = "Nucleotide diversity") + 
+  theme(axis.title = element_text(face= "bold", size = 20)) +
+  theme(axis.text.x = element_text(size = 12, face = "bold.italic")) +
+  theme(axis.text.y = element_text(size = 12, face = "bold")) +
+  theme(legend.text = element_text(size = 12, face = "bold")) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "top") +
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        panel.border = element_rect(color = "black", fill = NA)) 
+  
+
+label.df <- data.frame(Var2 = c("P. infestans", "P. mirabillis", "P. ipomoeae"),
+                        value = c(0.038, 0.077, 0.055))
+
+
+#tiff("./FIGS/nuc_div_218genes.tiff", width = 7, height = 7, units = "in", res = 600)
+
+p + geom_text(data = label.df, label = "***", size = 12)  
+
+#dev.off()
+
+
+```
+
+
+
+## Tajima's D
+
+
+```{r, eval = T}
+
+filtered_CAZY_bin <- lapply(conserved_CAZY_mybin, function(x) x[-1,])
+
+library(pegas)
+tajima <- matrix(NA, nrow = length(filtered_CAZY_bin), ncol = 6)
+
+rownames(tajima) <- names(filtered_CAZY_bin)
+colnames(tajima) <- c("Pinf_Tajima_D", "Pinf_Tajima_pval", "Pmir_Tajima_D", "Pmir_Tajima_pval", "Pipo_Tajima_D", "Pipo_Tajima_pval")
+        
+        for (i in 1:length(filtered_CAZY_bin)){
+              
+              p <- filtered_CAZY_bin[[i]]
+              pinf <-  p[grep("ipo|mir|P7722", labels(p), invert = TRUE),]
+              pmir <- p[grep("mir|P7722", labels(p)),]
+              pipo <- p[grep("ipo", labels(p)),]
+                
+              tajima[i,1] <- tajima.test(pinf)$D
+              tajima[i,3] <- tajima.test(pmir)$D
+              tajima[i,5] <- tajima.test(pipo)$D
+          
+              tajima[i,2] <- tajima.test(pinf)$Pval.normal
+              tajima[i,4] <- tajima.test(pmir)$Pval.normal
+              tajima[i,6] <- tajima.test(pipo)$Pval.normal
+              
+        }  
+
+
+pval <- tajima[ , grep("pval", colnames(tajima))]
+
+CAZY_sel_genes_inall <- pval[rowSums(pval < 0.05, na.rm = TRUE) !=0, ]
+nrow(CAZY_sel_genes_inall)
+CAZY_sel_genes_inall
+
+species <- c("Pinf", "Pmir", "Pipo")
+selection_mat <- matrix(NA, length(species), 2)
+rownames(selection_mat) <- species 
+colnames(selection_mat) <- c("Positive selection", "Balancing selection")
+
+positive_selected_gene_list <- vector("list", 3)
+names(positive_selected_gene_list) <- species
+
+balancing_selected_gene_list <- vector("list", 3)
+names(balancing_selected_gene_list) <- species
+
+genes <- vector("list", 3)
+names(genes) <- species
+
+
+for (k in 1:length(species)){
+  
+    p <- CAZY_sel_genes_inall[CAZY_sel_genes_inall[ , k , drop = FALSE] < 0.05, , drop = FALSE]
+    p <- p[!is.na(p[,k]), ]
+  
+    sel <- tajima[rownames(tajima) %in% rownames(p) , , drop = FALSE]
+    
+    j <- c(1,3,5)
+    positive_selection <- rownames(sel[sel[,j[k]] < 0 , , drop = FALSE])
+      if (is.null(positive_selection)){ 
+          selection_mat[k,1] <- 0
+          positive_selection <- NA
+          positive_selected_gene_list[[k]] <- positive_selection 
+          
+      } else {
+    
+    selection_mat[k,1] <- length(positive_selection)
+    positive_selected_gene_list[[k]] <- positive_selection
+    
+    }
+    balancing_selection <- setdiff(rownames(sel), positive_selection)
+    selection_mat[k,2] <- length(balancing_selection)
+    balancing_selected_gene_list[[k]] <- balancing_selection
+    
+    genes[[k]] <- c(positive_selection, balancing_selection)
+  
+}
+
+
+```
+
+
+
+
+

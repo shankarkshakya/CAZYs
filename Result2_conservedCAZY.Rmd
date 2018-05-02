@@ -1,0 +1,128 @@
+---
+title: "Core CAZY genes"
+author: "Shankar K Shakya"
+date: "April 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Core CAZY genes in clade 1c
+
+```{r}
+
+rm(list =ls())
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+
+CAZY_boc <- PITG_foundin_all_samples$CAZy
+nrow(CAZY_boc)
+
+CAZY_loci <- rownames(CAZY_boc)
+
+CAZY_boc[CAZY_boc < 0.9] <-  NA
+
+list <- c("1306_2", "NL07434", "blue13", 
+              "P13527", "P13626", "LBUS5", "DDR7602", "RS2009P1"
+              ,"us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
+              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
+              "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
+    
+CAZY_boc <- CAZY_boc[, list]
+
+CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
+
+length(conserved_CAZY) 
+
+
+
+
+```
+
+## Core CAZY genes in P infestans 
+
+```{r}
+
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+
+CAZY_boc <- PITG_foundin_all_samples$CAZy
+nrow(CAZY_boc)
+
+CAZY_loci <- rownames(CAZY_boc)
+
+CAZY_boc[CAZY_boc < 0.90] <-  NA
+
+list <- c("1306_2", "NL07434", "blue13", 
+              "P13527", "P13626", "LBUS5", "DDR7602", "RS2009P1"
+              ,"us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
+              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
+              "P10650")
+    
+CAZY_boc <- CAZY_boc[, list]
+
+CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
+
+length(conserved_CAZY)
+
+
+```
+
+
+## Core CAZY genes in P ipomoeae
+
+```{r}
+
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+
+CAZY_boc <- PITG_foundin_all_samples$CAZy
+nrow(CAZY_boc)
+
+CAZY_loci <- rownames(CAZY_boc)
+
+CAZY_boc[CAZY_boc < 0.90] <-  NA
+
+list <- c("ipo1", "ipo2", "ipo4", "ipo5")
+    
+CAZY_boc <- CAZY_boc[, list]
+
+CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
+
+length(conserved_CAZY)
+
+
+```
+
+
+## Core CAZY genes in P mirabillis
+
+```{r}
+
+PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
+CAZY_boc <- PITG_foundin_all_samples$CAZy
+nrow(CAZY_boc)
+
+CAZY_loci <- rownames(CAZY_boc)
+
+CAZY_boc[CAZY_boc < 0.9] <-  NA
+
+list <- c("mir1", "mir4", "mir5", "P7722")
+    
+CAZY_boc <- CAZY_boc[, list]
+
+CAZY_boc <- CAZY_boc[apply(CAZY_boc, MARGIN=1, function(x){ sum(is.na(x)) > 0 }),]
+
+conserved_CAZY <- setdiff(CAZY_loci, rownames(CAZY_boc))
+
+length(conserved_CAZY)
+
+
+```
+

@@ -164,7 +164,7 @@ colnames(pinf_loss) <- c("loss", "pop", "lineage")
 pinf_loss <- melt(pinf_loss)
 
 
-#tiff("./FIGS/Geneloss_withinPinfestans_detail_BOC0..tiff", width = 7, height = 7, units = "in", res = 600)
+#tiff("./FIGS/CAZYloss_withinPinfestans_detail_BOC0..tiff", width = 7, height = 7, units = "in", res = 600)
 
 ggplot(data = pinf_loss, aes(x = pop, y = value, fill = pop)) + geom_boxplot() +
   labs(x = "Population", y = "Number of lost CAZy by lineages") +
@@ -190,45 +190,6 @@ dev.off()
 ```
 
 
-
-## Lets look into Avirulence genes
-
-```{r, fig.align="center", fig.height=12, fig.width=12}
-
-Avr_boc <- PITG_foundin_all_samples$CAZy[c("PITG_16663", "PITG_06432", "PITG_22870", "PITG_14371", "PITG_18215", "PITG_07387", "PITG_21388", "PITG_20300", "PITG_16294", "PITG_07550", "PITG_07558"), , drop = F]
-
-Avr_boc[Avr_boc < 0.90] <-  NA
-
-list <- c("1306_2", "NL07434", "blue13", 
-               "P13527", "P13626",   "LBUS5",  "DDR7602", "RS2009P1"
-          , "us8", "us11", "P10127", "IN2009T1", "us22", "P17777us22", 
-              "BL2009P4", "us23", "us24", "inf2", "inf3", "inf5", "inf6", 
-              "P10650", "ipo1", "ipo2", "ipo4", "ipo5", "mir1", "mir4", "mir5", "P7722")
-    
-Avr_boc <- Avr_boc[, list]
-
-
-avr_genes <- read.table("AVR_list.txt", header = TRUE, sep = "\t")
-avr_boc <- Avr_boc[rownames(Avr_boc) %in% avr_genes$PITGs, ]
-
-
-for (k in 1:nrow(avr_boc)){
-
-      temp <- subset(avr_genes, rownames(avr_boc)[k] == avr_genes$PITGs)
-      rownames(avr_boc)[k] <- as.character(temp$AVR)
-      
-      #rownames(avr_boc)[k] <- paste(temp[1,1], rownames(avr_boc)[k], sep = "_")
-      
-}
-
-avr_boc <- avr_boc[order(rownames(avr_boc)), ]
-#saveRDS(avr_boc, "avr_boc0.90_PITG.RData")
-
-#tiff("./FIGS/Avrheatmap_BOC0.9.tiff", width = 7, height = 7, units = "in", res = 600)
-heatmap.bp(avr_boc)
-dev.off()
-
-```
 
 
 
