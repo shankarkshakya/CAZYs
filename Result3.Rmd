@@ -75,7 +75,7 @@ corebin <- readRDS("all_pinf7112Core.RData")
 
 corebin <- corebin[lapply(corebin, length) > 0]
 core_175 <- corebin[sample(1:length(corebin), size = 218, replace = F)]
-conserved_core_pinf <- lapply(core_175, function (x) x[which(rownames(core_175[[1]]) %in% rownames(conserved_CAZY_pinf$PITG_00366)), ])
+conserved_core_pinf <- lapply(core_175, function (x) x[which(rownames(core_175[[1]]) %in% rownames(conserved_CAZY_pinf$PITG_00127)), ])
 
 bin_list <- list(conserved_core_pinf, conserved_CAZY_pinf)
 names(bin_list) <- c("Core", "CAZY")
