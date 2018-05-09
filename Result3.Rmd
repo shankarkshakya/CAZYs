@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 
 rm(list =ls())
+
 PITG_foundin_all_samples <- readRDS("PITG_foundin_all_samples.RData")
 
 CAZY_loci <- rownames(PITG_foundin_all_samples$CAZy)
@@ -118,8 +119,8 @@ for (i in 1:length(nt_div_list)){
 }    
 
 observe1 <- rbind(
-    mutate(Core_melt_nt_div_mat_species, category = "Housekeeping genes"),
-    mutate(CAZY_melt_nt_div_mat_species, category = "CAZY genes")
+    mutate(CAZY_melt_nt_div_mat_species, category = "CAZY genes"),
+    mutate(Core_melt_nt_div_mat_species, category = "Housekeeping genes")
     
 )
 
@@ -160,13 +161,13 @@ p <- ggplot(observe1, aes(x=fct_inorder(Var2), y = value)) +
         panel.border = element_rect(color = "black", fill = NA)) 
   
 
-label.df <- data.frame(Var2 = c("P. infestans", "P. mirabillis", "P. ipomoeae"),
-                        value = c(0.038, 0.077, 0.055))
+# label.df <- data.frame(Var2 = c("P. infestans", "P. mirabillis", "P. ipomoeae"),
+#                         value = c(0.038, 0.077, 0.055))
 
 
 #tiff("./FIGS/nuc_div_218genes.tiff", width = 7, height = 7, units = "in", res = 600)
 
-p + geom_text(data = label.df, label = "***", size = 12)  
+#p + geom_text(data = label.df, label = "***", size = 12)  
 
 #dev.off()
 
